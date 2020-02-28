@@ -1,15 +1,19 @@
 import router from './router'
 import store from './store'
-// import { Message } from 'element-ui'
+import { Message } from 'element-ui'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
+import { getToken } from '@/utils/auth'
+import getPageTitle from '@/utils/get-page-title'
+
 NProgress.configure({ showSpinner: false })
+const whiteList = ['/login']
 
 router.beforeEach(async (to, from, next) => {
     NProgress.start()
-    document.title = '冷库监控平台'
-    const hasToken = true
+    document.title = getPageTitle(to.meta.title)
+    const hasToken = getToken()
     if(hasToken) {
         if(to.path === '/login') {
             next({ path: '/' })
@@ -19,14 +23,28 @@ router.beforeEach(async (to, from, next) => {
             if(hasRoles) {
                 next()
             } else {
-                const accessRoutes = await store.dispatch('permission/generateRoutes', ['admin'])
-                router.addRoutes(accessRoutes)
-                next({...to, replace: true})
+                try {
+                    const { roles } = await store.dispatch('user/getInfo')
+                    const accessRoutes = await store.dispatch('permission/generateRoutes', roles, { root: true })
+                    router.addRoutes(accessRoutes)
+                    next({...to, replace: true})
+                } catch(error) {
+                    await store.dispatch('user/resetToken')
+                    Message.error(error || 'Has Error')
+                    next(`/login?redirect=${to.path}`)
+                    NProgress.done()
+                }
             }
         }
     } else {
-        next('/login')
-        NProgress.done()
+        if (whiteList.indexOf(to.path) !== -1) {
+            // in the free login whitelist, go directly
+            next()
+          } else {
+            // other pages that do not have permission to access are redirected to the login page.
+            next(`/login?redirect=${to.path}`)
+            NProgress.done()
+          }
     }
 })
 router.afterEach(() => {

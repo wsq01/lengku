@@ -13,6 +13,11 @@ import './permission'
 import './icons'
 import '@/styles/index.less'
 
+if (process.env.NODE_ENV === 'production') {
+  const { mockXHR } = require('../mock')
+  mockXHR()
+}
+
 Vue.config.productionTip = false
 
 new Vue({

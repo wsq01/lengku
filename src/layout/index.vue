@@ -1,5 +1,6 @@
 <template>
-  <div class="app-wrapper">
+  <div :class="classObj" class="app-wrapper">
+    <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
     <sidebar class="sidebar-container" />
     <div :class="{hasTagsView:needTagsView}" class="main-container">
       <div :class="{ 'fixed-header': fixedHeader }">
@@ -12,8 +13,9 @@
 </template>
 
 <script>
-import { Sidebar, Navbar, TagsView, AppMain } from "./components";
-import { mapState } from "vuex";
+import { Sidebar, Navbar, TagsView, AppMain } from "./components"
+import { mapState } from "vuex"
+import ResizeHandler from './mixin/ResizeHandler'
 export default {
   components: {
     Sidebar,
@@ -21,11 +23,27 @@ export default {
     TagsView,
     AppMain
   },
+  mixins: [ResizeHandler],
   computed: {
     ...mapState({
+      sidebar: state => state.app.sidebar,
+      device: state => state.app.device,
       needTagsView: state => state.settings.tagsView,
       fixedHeader: state => state.settings.fixedHeader
-    })
+    }),
+    classObj() {
+      return {
+        hideSidebar: !this.sidebar.opened,
+        openSidebar: this.sidebar.opened,
+        withoutAnimation: this.sidebar.withoutAnimation,
+        mobile: this.device === 'mobile'
+      }
+    }
+  },
+  methods: {
+    handleClickOutside() {
+      this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
+    }
   }
 };
 </script>
@@ -44,6 +62,15 @@ export default {
     top: 0;
   }
 }
+  .drawer-bg {
+    background: #000;
+    opacity: 0.3;
+    width: 100%;
+    top: 0;
+    height: 100%;
+    position: absolute;
+    z-index: 999;
+  }
 .fixed-header {
   position: fixed;
   top: 0;

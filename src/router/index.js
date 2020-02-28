@@ -15,7 +15,7 @@ export const constantRoutes = [
         name: 'Home',
         component: () => import('@/views/home/index'),
         meta: {
-          title: 'home',
+          title: '首页',
           icon: 'documentation',
           affix: true
         }
@@ -30,6 +30,11 @@ export const constantRoutes = [
   {
     path: '/404',
     component: () => import('@/views/error/404'),
+    hidden: true
+  },
+  {
+    path: '/401',
+    component: () => import('@/views/error/401'),
     hidden: true
   }
 ]
