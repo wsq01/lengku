@@ -57,8 +57,8 @@ export default {
     }
   },
   data() {
+    this.onlyOneChild = null
     return {
-      onlyOneChild: null
     }
   },
   methods: {
